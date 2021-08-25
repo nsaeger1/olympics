@@ -25,8 +25,9 @@ export class AwardController {
 
   public static async UpdateAwards(req: ExpCore.Request, res: ExpCore.Response) {
     console.log("Endpoint Accessed: Update awards");
-    awards[req.body.id] = req.body;
-
+    if (req.body.medals >= 0) {
+      awards[req.body.id] = req.body;
+    }
     res.send(awards[req.body.id]);
   }
 }
