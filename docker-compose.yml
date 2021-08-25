@@ -1,0 +1,39 @@
+# docker-compose.yml
+version: "3.8"
+services:
+  api:
+    container_name: "api"
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: ./api/Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./api:/usr/bin/api
+      - /usr/bin/api/app/node_modules
+  site:
+    container_name: "site"
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      dockerfile: ./site/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./site:/usr/bin/site
+      - /usr/bin/site/app/node_modules
+  #  postgres:
+  #     container_name: postgres
+  #     hostname: postgres
+  #     image: postgres:13.3
+  #     env_file:
+  #        - database.env
+  #     ports:
+  #        - "5432:5432"
+  #     volumes:
+  #        - ./docker/postgres:/var/lib/postgresql/data
+  #        #- ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+  #        #- ./sql/fill_tables.sql:/docker-entrypoint-initdb.d/fill_tables.sql
