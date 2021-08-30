@@ -1,32 +1,56 @@
-import { Card, CardActions, CardContent, CardHeader, IconButton, SvgIcon } from "@material-ui/core";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  IconButton,
+  SvgIcon,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@material-ui/core";
 import { useState } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import { mdiMedal, mdiMinusCircle, mdiPlusCircle } from "@mdi/js";
-import { CountryAward } from "../utils/util";
+import { OlympicCountry } from "../utils/util";
 
 type Props = {
-  data: CountryAward;
+  data: OlympicCountry.CountryAward;
+  refresh: () => void;
 };
 const useStyles = makeStyles({
   card: {
     maxWidth: 300,
     margin: 10,
   },
-  medal: {
+  gold: {
     color: "#d4af37",
+  },
+  silver: {
+    color: "#c0c0c0",
+  },
+  bronze: {
+    color: "#cd7f32",
   },
 });
 
 export default function Country(props: Props) {
-  const [data, setData] = useState<CountryAward>(props.data);
+  const { refresh } = props;
+  const [data, setData] = useState<OlympicCountry.CountryAward>(props.data);
   const classes = useStyles();
+  const rows = [
+    { name: "gold", number: data.gold },
+    { name: "silver", number: data.silver },
+    { name: "bronze", number: data.bronze },
+  ];
 
-  const updateMedals = async (change: string) => {
-    const medals = change === "up" ? data.medals + 1 : change === "down" ? data.medals - 1 : data.medals;
-    const updateData: CountryAward = {
+  const updateMedals = async (type: string, change?: string) => {
+    const updateData: OlympicCountry.Country = {
       id: data.id,
       country: data.country,
-      medals: medals,
+      gold: type === "gold" ? (change === "up" ? data.gold + 1 : data.gold - 1) : data.gold,
+      silver: type === "silver" ? (change === "up" ? data.silver + 1 : data.silver - 1) : data.silver,
+      bronze: type === "bronze" ? (change === "up" ? data.bronze + 1 : data.bronze - 1) : data.bronze,
     };
 
     await fetch(`http://localhost:3001/api/awards`, {
@@ -36,40 +60,58 @@ export default function Country(props: Props) {
       method: "Post",
     })
       .then((res) => res.json())
-      .then((res) => setData(res));
+      .then((res) => {
+        setData(new OlympicCountry.CountryAward(res));
+        refresh();
+      })
+      .catch((err) => console.log(err));
   };
 
   return (
     <Card className={classes.card}>
-      <CardHeader title={data.country}></CardHeader>
+      <CardHeader title={`${data.country} Medals: ${data.totalMedals()}`}></CardHeader>
       <CardContent>
-        <SvgIcon className={classes.medal}>
-          <path d={mdiMedal} />
-        </SvgIcon>
-        {data.medals}
+        <Table>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow key={row.name + Date.now()}>
+                <TableCell>{row.number}</TableCell>
+                <TableCell>
+                  <SvgIcon
+                    className={
+                      row.name === "gold" ? classes.gold : row.name === "silver" ? classes.silver : classes.bronze
+                    }
+                  >
+                    <path d={mdiMedal} />
+                  </SvgIcon>
+                </TableCell>
+                <TableCell>
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      updateMedals(row.name, "up");
+                    }}
+                  >
+                    <SvgIcon>
+                      <path d={mdiPlusCircle} />
+                    </SvgIcon>
+                  </IconButton>
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      updateMedals(row.name);
+                    }}
+                  >
+                    <SvgIcon>
+                      <path d={mdiMinusCircle} />
+                    </SvgIcon>
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
-      <CardActions>
-        <IconButton
-          color="primary"
-          onClick={() => {
-            updateMedals("up");
-          }}
-        >
-          <SvgIcon>
-            <path d={mdiPlusCircle}></path>
-          </SvgIcon>
-        </IconButton>
-        <IconButton
-          color="primary"
-          onClick={() => {
-            updateMedals("down");
-          }}
-        >
-          <SvgIcon>
-            <path d={mdiMinusCircle}></path>
-          </SvgIcon>
-        </IconButton>
-      </CardActions>
     </Card>
   );
 }
