@@ -1,5 +1,7 @@
 import {
+  Button,
   Card,
+  CardActions,
   CardContent,
   CardHeader,
   IconButton,
@@ -66,6 +68,20 @@ export default function Country(props: Props) {
       })
       .catch((err) => console.log(err));
   };
+  const deleteCountry = async () => {
+    await fetch(`http://localhost:3001/api/awards`, {
+      body: JSON.stringify({ id: data.id }),
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      method: "Delete",
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res);
+        refresh();
+      })
+      .catch((err) => console.log(err));
+  };
 
   return (
     <Card className={classes.card}>
@@ -112,6 +128,9 @@ export default function Country(props: Props) {
           </TableBody>
         </Table>
       </CardContent>
+      <CardActions>
+        <Button onClick={() => deleteCountry()}>Delete</Button>
+      </CardActions>
     </Card>
   );
 }
